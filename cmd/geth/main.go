@@ -194,9 +194,11 @@ var (
 
 func init() {
 	// Initialize the CLI app and start Geth
+	// 处理 全局的命令
 	app.Action = geth
 	app.HideVersion = true // we have a command to print the version
 	app.Copyright = "Copyright 2013-2019 The go-ethereum Authors"
+	// 处理 geth 的子命令
 	app.Commands = []cli.Command{
 		// See chaincmd.go:
 		initCommand,
@@ -243,6 +245,7 @@ func init() {
 			return err
 		}
 		// If we're a full node on mainnet without --cache specified, bump default cache allowance
+		// 非轻节点 并且没有设置--cache和--networkid 设置cache为4096mb
 		if ctx.GlobalString(utils.SyncModeFlag.Name) != "light" && !ctx.GlobalIsSet(utils.CacheFlag.Name) && !ctx.GlobalIsSet(utils.NetworkIdFlag.Name) {
 			// Make sure we're not on any supported preconfigured testnet either
 			if !ctx.GlobalIsSet(utils.TestnetFlag.Name) && !ctx.GlobalIsSet(utils.RinkebyFlag.Name) && !ctx.GlobalIsSet(utils.GoerliFlag.Name) {
@@ -252,6 +255,7 @@ func init() {
 			}
 		}
 		// If we're running a light client on any network, drop the cache to some meaningfully low amount
+		// 轻节点 没有设置--cache 默认给128mb
 		if ctx.GlobalString(utils.SyncModeFlag.Name) == "light" && !ctx.GlobalIsSet(utils.CacheFlag.Name) {
 			log.Info("Dropping default light client cache", "provided", ctx.GlobalInt(utils.CacheFlag.Name), "updated", 128)
 			ctx.GlobalSet(utils.CacheFlag.Name, strconv.Itoa(128))
@@ -260,6 +264,7 @@ func init() {
 		var mem gosigar.Mem
 		// Workaround until OpenBSD support lands into gosigar
 		// Check https://github.com/elastic/gosigar#supported-platforms
+		//
 		if runtime.GOOS != "openbsd" {
 			if err := mem.Get(); err == nil {
 				allowance := int(mem.Total / 1024 / 1024 / 3)
@@ -270,6 +275,7 @@ func init() {
 			}
 		}
 		// Ensure Go's GC ignores the database cache for trigger percentage
+		// 设置golang的GC
 		cache := ctx.GlobalInt(utils.CacheFlag.Name)
 		gogc := math.Max(20, math.Min(100, 100/(float64(cache)/1024)))
 
@@ -277,6 +283,7 @@ func init() {
 		godebug.SetGCPercent(int(gogc))
 
 		// Start metrics export if enabled
+		// 开启 cpu/内存/磁盘 的统计，数据插入到 influxDB
 		utils.SetupMetrics(ctx)
 
 		// Start system runtime metrics collection
@@ -302,12 +309,15 @@ func main() {
 // geth is the main entry point into the system if no special subcommand is ran.
 // It creates a default node based on the command line arguments and runs it in
 // blocking mode, waiting for it to be shut down.
+// geth 的入口程序
 func geth(ctx *cli.Context) error {
 	if args := ctx.Args(); len(args) > 0 {
 		return fmt.Errorf("invalid command: %q", args[0])
 	}
+	// 建立全节点
 	node := makeFullNode(ctx)
 	defer node.Close()
+	// 启动这个节点
 	startNode(ctx, node)
 	node.Wait()
 	return nil
@@ -316,6 +326,7 @@ func geth(ctx *cli.Context) error {
 // startNode boots up the system node and all registered protocols, after which
 // it unlocks any requested accounts, and starts the RPC/IPC interfaces and the
 // miner.
+//
 func startNode(ctx *cli.Context, stack *node.Node) {
 	debug.Memsize.Add("node", stack)
 

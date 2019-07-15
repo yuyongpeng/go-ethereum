@@ -105,7 +105,7 @@ func defaultNodeConfig() node.Config {
 	cfg.IPCPath = "geth.ipc"
 	return cfg
 }
-
+// 通过配置文件建立 node 节点
 func makeConfigNode(ctx *cli.Context) (*node.Node, gethConfig) {
 	// Load defaults.
 	cfg := gethConfig{
