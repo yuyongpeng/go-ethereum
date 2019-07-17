@@ -83,6 +83,7 @@ func CreateAddress2(b common.Address, salt [32]byte, inithash []byte) common.Add
 }
 
 // ToECDSA creates a private key with the given D value.
+// 根据传递的 key 来生成 私钥
 func ToECDSA(d []byte) (*ecdsa.PrivateKey, error) {
 	return toECDSA(d, true)
 }
@@ -156,6 +157,8 @@ func HexToECDSA(hexkey string) (*ecdsa.PrivateKey, error) {
 }
 
 // LoadECDSA loads a secp256k1 private key from the given file.
+// c43fff5152b1ede0cb23002c89e040c3e6d4da5ee679eb5baf151fa5746309cf
+// 这个是 key 是64位
 func LoadECDSA(file string) (*ecdsa.PrivateKey, error) {
 	buf := make([]byte, 64)
 	fd, err := os.Open(file)

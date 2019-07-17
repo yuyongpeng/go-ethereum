@@ -89,12 +89,15 @@ func New(conf *Config) (*Node, error) {
 	}
 	// Ensure that the instance name doesn't cause weird conflicts with
 	// other files in the data directory.
+	// name 不能包含特殊字符
 	if strings.ContainsAny(conf.Name, `/\`) {
 		return nil, errors.New(`Config.Name must not contain '/' or '\'`)
 	}
+	// name 不能和 keystore 的目录名相同
 	if conf.Name == datadirDefaultKeyStore {
 		return nil, errors.New(`Config.Name cannot be "` + datadirDefaultKeyStore + `"`)
 	}
+	// name 不能以 .ipc 后缀结尾
 	if strings.HasSuffix(conf.Name, ".ipc") {
 		return nil, errors.New(`Config.Name cannot end in ".ipc"`)
 	}

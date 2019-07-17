@@ -80,7 +80,7 @@ type gethConfig struct {
 	Ethstats  ethstatsConfig
 	Dashboard dashboard.Config
 }
-
+// 把 toml 配置文件的数据，加载到 cfg 指针中
 func loadConfig(file string, cfg *gethConfig) error {
 	f, err := os.Open(file)
 	if err != nil {
@@ -95,7 +95,7 @@ func loadConfig(file string, cfg *gethConfig) error {
 	}
 	return err
 }
-
+// node 节点相关的配置信息
 func defaultNodeConfig() node.Config {
 	cfg := node.DefaultConfig
 	cfg.Name = clientIdentifier
@@ -105,7 +105,7 @@ func defaultNodeConfig() node.Config {
 	cfg.IPCPath = "geth.ipc"
 	return cfg
 }
-// 通过配置文件建立 node 节点
+// 通过配置文件或者命令行参数建立 node 节点
 func makeConfigNode(ctx *cli.Context) (*node.Node, gethConfig) {
 	// Load defaults.
 	cfg := gethConfig{
@@ -116,6 +116,7 @@ func makeConfigNode(ctx *cli.Context) (*node.Node, gethConfig) {
 	}
 
 	// Load config file.
+	// 加载 toml 的配置文件
 	if file := ctx.GlobalString(configFileFlag.Name); file != "" {
 		if err := loadConfig(file, &cfg); err != nil {
 			utils.Fatalf("%v", err)
@@ -123,8 +124,9 @@ func makeConfigNode(ctx *cli.Context) (*node.Node, gethConfig) {
 	}
 
 	// Apply flags.
+	// 把 命令行 获得的参数赋值到 node 节点
 	utils.SetNodeConfig(ctx, &cfg.Node)
-	stack, err := node.New(&cfg.Node)
+	stack, err := node.New(&cfg.Node)		// 根据获得参数建立一个节点
 	if err != nil {
 		utils.Fatalf("Failed to create the protocol stack: %v", err)
 	}
@@ -147,7 +149,7 @@ func enableWhisper(ctx *cli.Context) bool {
 	}
 	return false
 }
-
+// 建立全量节点
 func makeFullNode(ctx *cli.Context) *node.Node {
 	stack, cfg := makeConfigNode(ctx)
 	utils.RegisterEthService(stack, &cfg.Eth)
@@ -156,6 +158,7 @@ func makeFullNode(ctx *cli.Context) *node.Node {
 		utils.RegisterDashboardService(stack, &cfg.Dashboard, gitCommit)
 	}
 	// Whisper must be explicitly enabled by specifying at least 1 whisper flag or in dev mode
+	// whisper 只有在显示开启或者 dev 模式下才有效
 	shhEnabled := enableWhisper(ctx)
 	shhAutoEnabled := !ctx.GlobalIsSet(utils.WhisperEnabledFlag.Name) && ctx.GlobalIsSet(utils.DeveloperFlag.Name)
 	if shhEnabled || shhAutoEnabled {

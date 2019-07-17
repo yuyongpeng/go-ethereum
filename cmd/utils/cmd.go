@@ -46,6 +46,7 @@ const (
 // Fatalf formats a message to standard error and exits the program.
 // The message is also printed to standard output if standard error
 // is redirected to a different file.
+// 致命的错误，直接退出程序
 func Fatalf(format string, args ...interface{}) {
 	w := io.MultiWriter(os.Stdout, os.Stderr)
 	if runtime.GOOS == "windows" {

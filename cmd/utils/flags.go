@@ -762,6 +762,10 @@ func MakeDataDir(ctx *cli.Context) string {
 // setNodeKey creates a node key from set command line flags, either loading it
 // from a file or as a specified hex value. If neither flags were provided, this
 // method returns nil and an emphemeral key is to be generated.
+// 这个 key 可以唯一确定 enode的值
+// ./bootnode --genkey=boot.key
+// cat boot.key
+// c43fff5152b1ede0cb23002c89e040c3e6d4da5ee679eb5baf151fa5746309cf
 func setNodeKey(ctx *cli.Context, cfg *p2p.Config) {
 	var (
 		hex  = ctx.GlobalString(NodeKeyHexFlag.Name)
@@ -1076,7 +1080,7 @@ func MakePasswordList(ctx *cli.Context) []string {
 	}
 	return lines
 }
-
+// 设置 配置文件中 node 信息的 p2p 配置
 func SetP2PConfig(ctx *cli.Context, cfg *p2p.Config) {
 	setNodeKey(ctx, cfg)
 	setNAT(ctx, cfg)
